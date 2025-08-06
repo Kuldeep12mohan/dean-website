@@ -12,11 +12,40 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 const categories = [
-  { label: 'Registration List', folder: 'Registration' },
-  { label: 'Award List', folder: 'Award' },
-  { label: 'Attendance List', folder: 'Attendance' },
-  { label: 'Exam Attendance List', folder: 'ExamAttendance' },
+  { label: ' List', folder: 'Registration' },
+  { label: 'Attendance List', folder: 'Award' },
+  { label: 'Exam Attendance List', folder: 'Attendance' },
+  { label: 'Award List', folder: 'ExamAttendance' },
 ];
+teacherRouter.post(
+  "/upload-file",
+  verifyToken,
+  upload.single("file"),
+  async (req, res) => {
+    const { category } = req.body;
+
+    if (!req.file || !category) {
+      return res.status(400).json({ message: "Missing file or category" });
+    }
+
+    const fileName = req.file.originalname;
+    const uploadsDir = path.join(process.cwd(), "uploads", category);
+
+    try {
+      if (!fs.existsSync(uploadsDir)) {
+        fs.mkdirSync(uploadsDir, { recursive: true });
+      }
+
+      const filePath = path.join(uploadsDir, fileName);
+      fs.writeFileSync(filePath, req.file.buffer);
+
+      res.status(201).json({ message: `${category} file uploaded successfully` });
+    } catch (err) {
+      console.error("Upload file error:", err);
+      res.status(500).json({ message: "Failed to upload file" });
+    }
+  }
+);
 
 teacherRouter.get('/files/:courseNumber', verifyToken, async (req, res) => {
   console.log("files")

@@ -30,6 +30,7 @@ const Downloads = () => {
       );
 
       setFiles(response.data.files || []);
+      console.log("files",response.data.files)
       setSubmitted(true);
     } catch (err) {
       console.error(err);
