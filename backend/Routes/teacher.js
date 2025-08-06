@@ -4,10 +4,44 @@ import xlsx from 'xlsx';
 import Teacher from '../Models/Teacher.js';
 import UploadedSheet from '../Models/UploadSheet.js';
 import { generateToken,verifyToken } from '../Middleware/auth.js';
+import fs from 'fs';
+import path from 'path';
 
 const teacherRouter = express.Router();
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
+
+const categories = [
+  { label: 'Registration List', folder: 'Registration' },
+  { label: 'Award List', folder: 'Award' },
+  { label: 'Attendance List', folder: 'Attendance' },
+  { label: 'Exam Attendance List', folder: 'ExamAttendance' },
+];
+
+teacherRouter.get('/files/:courseNumber', verifyToken, async (req, res) => {
+  console.log("files")
+  const { courseNumber } = req.params;
+  const results = [];
+
+  try {
+    for (const category of categories) {
+      const fileName = `${courseNumber}.XLSX`;
+      const filePath = path.join(process.cwd(), 'uploads', category.folder, fileName);
+      if (fs.existsSync(filePath)) {
+        results.push({
+          label: category.label,
+          url: `/downloads/${category.folder}/${fileName}`,
+        });
+      }
+    }
+
+    res.json({ courseNumber, files: results });
+  } catch (error) {
+    console.error('Error fetching files:', error);
+    res.status(500).json({ message: 'Server error while retrieving files' });
+  }
+});
+
 
 teacherRouter.post('/signup', async (req, res) => {
   const { username, password } = req.body;
