@@ -1,36 +1,27 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
 import Downloads from "./Downloads";
 import Uploads from "./Uploads";
+import { useNavigate } from "react-router-dom";
 
 const Teacher = () => {
-  const [showDownload, setShowDownload] = useState(false);
-  const [showUpload, setShowUpload] = useState(false);
-
-  const handleShowDownload = () => {
-    setShowDownload(true);
-    setShowUpload(false);
-  };
-
-  const handleShowUpload = () => {
-    setShowUpload(true);
-    setShowDownload(false);
-  };
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("downloads");
+  useEffect(()=>{
+    const teacherToken = localStorage.getItem("teacherToken");
+    if(!teacherToken)navigate("/teacher-login")
+  })
 
   return (
     <div className="flex min-h-screen">
-      {/* Sidebar */}
-      <Sidebar onShowDownload={handleShowDownload} onShowUpload={handleShowUpload} />
-
-      {/* Main content */}
+      <Sidebar
+        activeTab={activeTab}
+        onShowDownload={() => setActiveTab("downloads")}
+        onShowUpload={() => setActiveTab("uploads")}
+      />
       <div className="flex-1 p-6 bg-gray-100">
-        {showDownload && <Downloads />}
-        {showUpload && <Uploads />}
-        {!showDownload && !showUpload && (
-          <div className="text-gray-600 text-lg font-medium text-center mt-20">
-            Please select an option from the sidebar.
-          </div>
-        )}
+        {activeTab === "downloads" && <Downloads />}
+        {activeTab === "uploads" && <Uploads />}
       </div>
     </div>
   );
