@@ -12,7 +12,7 @@ const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
 const categories = [
-  { label: ' List', folder: 'Registration' },
+  { label: 'Registration List', folder: 'Registration' },
   { label: 'Attendance List', folder: 'Award' },
   { label: 'Exam Attendance List', folder: 'Attendance' },
   { label: 'Award List', folder: 'ExamAttendance' },

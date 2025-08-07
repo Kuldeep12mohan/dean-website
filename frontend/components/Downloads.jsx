@@ -19,7 +19,7 @@ const Downloads = () => {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("token"); // JWT token from login
+      const token = localStorage.getItem("teacherToken"); // JWT token from login
       const response = await axios.get(
         `http://localhost:3000/teacher/files/${courseNumber}`,
         {

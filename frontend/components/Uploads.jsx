@@ -61,7 +61,7 @@ const Uploads = () => {
         className="bg-green-600 text-white px-6 py-3 rounded-md hover:bg-green-700 w-full"
         disabled={loading}
       >
-        {loading ? "Uploading..." : "Upload Attendance List"}
+        {loading ? "Uploading..." : "Upload Attendance"}
       </button>
 
       {message && (
