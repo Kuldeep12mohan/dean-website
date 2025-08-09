@@ -55,7 +55,7 @@ teacherRouter.get('/files/:courseNumber', verifyToken, async (req, res) => {
   try {
     for (const category of categories) {
       const fileName = `${courseNumber}.XLSX`;
-      const filePath = path.join(process.cwd(), 'uploads', category.folder, fileName);
+      const filePath = path.join(process.cwd(), 'downloads', category.folder, fileName);
       if (fs.existsSync(filePath)) {
         results.push({
           label: category.label,
