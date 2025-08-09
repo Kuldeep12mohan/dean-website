@@ -2,6 +2,13 @@ import { useState } from "react";
 import axios from "axios";
 
 const Downloads = () => {
+  const categories = [
+    { label: "Registration List", folder: "Registration" },
+    { label: "Attendance List", folder: "Award" },
+    { label: "Exam Attendance List", folder: "Attendance" },
+    { label: "Award List", folder: "ExamAttendance" },
+  ];
+
   const [courseNumber, setCourseNumber] = useState("");
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -19,7 +26,7 @@ const Downloads = () => {
     setLoading(true);
 
     try {
-      const token = localStorage.getItem("teacherToken"); // JWT token from login
+      const token = localStorage.getItem("teacherToken");
       const response = await axios.get(
         `http://localhost:3000/teacher/files/${courseNumber}`,
         {
@@ -29,14 +36,54 @@ const Downloads = () => {
         }
       );
 
-      setFiles(response.data.files || []);
-      console.log("files",response.data.files)
+      const foundFiles = response.data.files || [];
+
+      // Map all categories to include either file info or "not available"
+      const allFilesWithStatus = categories.map((cat) => {
+        const match = foundFiles.find((f) => f.label === cat.label);
+        return match
+          ? { ...match, available: true }
+          : {
+              label: cat.label,
+              available: false,
+              message:
+                "Course not in the list of running courses for the current semester.",
+            };
+      });
+
+      setFiles(allFilesWithStatus);
       setSubmitted(true);
     } catch (err) {
       console.error(err);
-      setError("Failed to fetch files. Please check course number or login again.");
+      setError(
+        "Failed to fetch files. Please check course number or login again."
+      );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownload = async (file) => {
+    try {
+      const token = localStorage.getItem("teacherToken");
+      const res = await axios.get(`http://localhost:3000${file.url}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        responseType: "blob",
+      });
+
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `${file.label}.xlsx`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      console.error("Download failed:", err);
+      alert("Failed to download file.");
     }
   };
 
@@ -68,30 +115,31 @@ const Downloads = () => {
         </button>
       </form>
 
-      {error && <p className="text-red-600 mb-4">{error}</p>}
+      {error && <p className="text-red-600 mb-4 font-medium">{error}</p>}
 
-      {submitted && files.length > 0 && (
+      {submitted && (
         <div className="space-y-4">
           {files.map((file) => (
             <div
               key={file.label}
               className="flex items-center justify-between border p-4 rounded-md bg-gray-50"
             >
-              <span className="text-gray-700 text-md font-medium">{file.label}</span>
-              <a
-                href={`http://localhost:3000${file.url}`}
-                download
-                className="text-blue-600 underline hover:text-blue-800"
-              >
-                Download
-              </a>
+              <span className="text-gray-700 text-md font-medium">
+                {file.label}
+              </span>
+              {file.available ? (
+                <button
+                  onClick={() => handleDownload(file)}
+                  className="text-blue-600 underline hover:text-blue-800"
+                >
+                  Download
+                </button>
+              ) : (
+                <span className="text-red-500 text-sm">{file.message}</span>
+              )}
             </div>
           ))}
         </div>
-      )}
-
-      {submitted && !loading && files.length === 0 && (
-        <p className="text-center text-gray-500">No files found for this course number.</p>
       )}
     </div>
   );
