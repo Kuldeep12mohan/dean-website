@@ -22,31 +22,34 @@ teacherRouter.post(
   verifyToken,
   upload.single("file"),
   async (req, res) => {
-    const { category } = req.body;
+    const { courseNumber } = req.body;
 
-    if (!req.file || !category) {
-      return res.status(400).json({ message: "Missing file or category" });
+    if (!req.file || !courseNumber) {
+      return res.status(400).json({ message: "Missing file or course number" });
     }
 
-    const fileName = req.file.originalname;
-    const uploadsDir = path.join(process.cwd(), "uploads", category);
-
+    const uploadsDir = path.join(process.cwd(), "uploads/Attendance");
     try {
       if (!fs.existsSync(uploadsDir)) {
         fs.mkdirSync(uploadsDir, { recursive: true });
       }
+      const fileExt = path.extname(req.file.originalname);
 
-      const filePath = path.join(uploadsDir, fileName);
+      const newFileName = `${courseNumber}${fileExt}`;
+
+      const filePath = path.join(uploadsDir, newFileName);
       fs.writeFileSync(filePath, req.file.buffer);
 
-      res.status(201).json({ message: `${category} file uploaded successfully` });
+      res.status(201).json({
+        message: `File uploaded successfully for course ${courseNumber}`,
+        fileName: newFileName,
+      });
     } catch (err) {
       console.error("Upload file error:", err);
       res.status(500).json({ message: "Failed to upload file" });
     }
   }
 );
-
 teacherRouter.get('/files/:courseNumber', verifyToken, async (req, res) => {
   console.log("files")
   const { courseNumber } = req.params;
